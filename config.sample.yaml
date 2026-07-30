@@ -185,6 +185,21 @@ json_path: "google_reviews.json"
 #   synthetic_url: "https://maps.app.goo.gl/KNOWN_GOOD_PLACE"
 
 # -----------------------------------------------------------------------------
+# Website Reviews Publish (optional - INOUT Neon website cache)
+# -----------------------------------------------------------------------------
+# Publishes a compact ReviewsBlock into the website's Postgres settings table:
+# settings.key = "googleReviews"
+#
+# Keep the Neon connection string in DATABASE_URL or NEON_DATABASE_URL instead
+# of committing it here.
+website_reviews:
+  place_id: ""                  # Optional; defaults to the first scraped place
+  database_url: ""              # Optional; env DATABASE_URL is preferred
+  settings_key: "googleReviews"
+  limit: 5
+  min_rating: 4
+
+# -----------------------------------------------------------------------------
 # Audit Log Retention (optional, v1.2.2+)
 # -----------------------------------------------------------------------------
 # API audit_log rows older than this are pruned on API server startup.

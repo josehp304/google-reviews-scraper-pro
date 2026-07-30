@@ -88,6 +88,15 @@ DEFAULT_CONFIG = {
         "enabled": False,
         "path": "/metrics",
     },
+    # Website publishing target. The Neon URL should usually come from
+    # DATABASE_URL/NEON_DATABASE_URL rather than being committed to config.yaml.
+    "website_reviews": {
+        "place_id": "",
+        "database_url": "",
+        "settings_key": "googleReviews",
+        "limit": 5,
+        "min_rating": 4,
+    },
     # Adaptive scoring threshold for tab detection (§2.1). Lower values
     # accept looser matches; 0.0 reverts to v1.2.1 behavior.
     "adaptive": {

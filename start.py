@@ -517,6 +517,61 @@ def _run_health(config, args):
         sys.exit(1)
 
 
+def _run_publish_google_reviews(config, args):
+    """Publish scraped reviews to the website's Neon settings table."""
+    from modules.neon_reviews import (
+        DEFAULT_SETTINGS_KEY,
+        build_reviews_block,
+        publish_reviews_block,
+    )
+    from modules.review_db import ReviewDB
+
+    publish_cfg = config.get("website_reviews", {}) or {}
+    db = ReviewDB(_get_db_path(config, args))
+    try:
+        place_id = getattr(args, "place_id", None) or publish_cfg.get("place_id")
+        if not place_id:
+            places = db.list_places()
+            if not places:
+                print("No scraped places found. Run `python start.py scrape` first.")
+                sys.exit(1)
+            place_id = places[0]["place_id"]
+
+        limit = getattr(args, "limit", None)
+        if limit is None:
+            limit = int(publish_cfg.get("limit", 5))
+        min_rating = getattr(args, "min_rating", None)
+        if min_rating is None:
+            min_rating = int(publish_cfg.get("min_rating", 4))
+        settings_key = (
+            getattr(args, "settings_key", None)
+            or publish_cfg.get("settings_key")
+            or DEFAULT_SETTINGS_KEY
+        )
+
+        block = build_reviews_block(
+            db,
+            place_id,
+            limit=limit,
+            min_rating=min_rating,
+        )
+        if getattr(args, "dry_run", False):
+            print(json.dumps(block, ensure_ascii=False, indent=2))
+            return
+
+        publish_reviews_block(
+            block,
+            database_url=getattr(args, "database_url", None) or publish_cfg.get("database_url"),
+            settings_key=settings_key,
+        )
+        print(
+            f"Published {len(block['reviews'])} reviews to settings.{settings_key} "
+            f"for place_id={place_id}."
+        )
+    finally:
+        db.close()
+
+
 def _run_logs(config, args):
     """Run the logs viewer command."""
     import sys
@@ -608,6 +663,7 @@ def main():
         "selector-health": _run_selector_health,
         "db-vacuum": _run_db_vacuum,
         "health": _run_health,
+        "publish-google-reviews": _run_publish_google_reviews,
     }
 
     handler = commands.get(args.command)

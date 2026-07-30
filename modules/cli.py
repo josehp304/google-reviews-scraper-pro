@@ -17,6 +17,8 @@ Subcommands:
   api-key-stats   Show API key usage statistics
   audit-log       Query the API audit log
   prune-audit     Prune old audit log entries
+  publish-google-reviews
+                  Publish local reviews to website Neon settings.googleReviews
   logs            View structured JSON log files
 """
 
@@ -302,6 +304,39 @@ def _build_health_parser(sub: argparse._SubParsersAction) -> None:
     )
 
 
+def _build_publish_google_reviews_parser(sub: argparse._SubParsersAction) -> None:
+    """Build the 'publish-google-reviews' subcommand."""
+    sp = sub.add_parser(
+        "publish-google-reviews",
+        help="Publish scraped reviews to the website Neon settings table",
+    )
+    _add_common_args(sp)
+    sp.add_argument(
+        "--place-id", type=str, default=None,
+        help="local place_id to publish (default: first configured/scraped place)",
+    )
+    sp.add_argument(
+        "--database-url", type=str, default=None,
+        help="Neon Postgres connection string (default: DATABASE_URL env)",
+    )
+    sp.add_argument(
+        "--settings-key", type=str, default=None,
+        help="settings table key (default: googleReviews)",
+    )
+    sp.add_argument(
+        "--limit", type=int, default=None,
+        help="number of reviews to publish (default: 5)",
+    )
+    sp.add_argument(
+        "--min-rating", type=int, default=None,
+        help="minimum review rating to publish (default: 4)",
+    )
+    sp.add_argument(
+        "--dry-run", action="store_true",
+        help="print the JSON payload without writing to Neon",
+    )
+
+
 def _build_logs_parser(sub: argparse._SubParsersAction) -> None:
     """Build the 'logs' subcommand."""
     sp = sub.add_parser("logs", help="View structured JSON log files")
@@ -336,6 +371,7 @@ def parse_arguments():
     _build_selector_health_parser(sub)
     _build_db_vacuum_parser(sub)
     _build_health_parser(sub)
+    _build_publish_google_reviews_parser(sub)
 
     # Accept opt-in date-range filter flags at both subcommand and top level
     for parent in (sub.choices.get("scrape"), ap):
